@@ -22,7 +22,12 @@ class Vectorizer:
         self.int_to_target = {}
         self.load_target_conversions()
         self.load_vector_lengths()
-
+        self.train_x = None
+        self.train_y = None
+        self.validate_x = None
+        self.validate_y = None
+        self.test_x = None
+        self.test_y = None
 
     def set_accepted_chars(self, accepted_chars):
         """Set the character set to use for vectorization of the input data
@@ -135,9 +140,19 @@ class Vectorizer:
         results = ()
         for key, data in split_result.items():
             print(f"Formating {key} data. Size = {len(data)}")
-            data_x = np.asarray([np.asarray(self.answer_encoding(self.normalize(answer)))
-                                 for answer in data[self.answer_col]])
+            data_x = np.asarray([np.asarray(self.answer_encoding(self.normalize(string)))
+                                 for string in data[self.answer_col]])
             data_y = self.lable_encoding(data[self.predictor_col])
             results = results + (data_x, data_y)
 
-        return results
+        self.train_x, self.train_y, self.validate_x, self.validate_y, self.test_x, self.test_y = results
+
+    def get_datasets(self):
+        """Return all the split datasets for external use"""
+        return self.train_x, self.train_y, self.validate_x, self.validate_y, self.test_x, self.test_y
+
+    def format_single(self, string, category):
+        data_x = np.asarray([self.answer_encoding(self.normalize(string))])
+        data_y = np.zeros((len(self.categories)))
+        data_y[self.target_to_int[category]] = 1
+        return data_x, data_y
